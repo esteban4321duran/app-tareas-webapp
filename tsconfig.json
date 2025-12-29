@@ -1,15 +1,29 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "strict": true,
-    "skipLibCheck": true,
-    "lib": [
-      "ESNext"
-    ],
-    "types": ["vite/client"],
-    "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx"
-  },
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "strict": true,
+        "skipLibCheck": true,
+        "lib": [
+            "ESNext"
+        ],
+        "types": [
+            "vite/client"
+        ],
+        "jsx": "react-jsx",
+        "jsxImportSource": "hono/jsx",
+        //base url for typescript to begin searching absolute paths
+        "baseUrl": ".",
+        //path alias to use "@/" as absolute path instead of error prone relative path like ../../src
+        "paths": {
+            "@/*": [
+                "src/*"
+            ]
+        },
+    },
+    "include": [
+        "src",
+        "tests"
+    ]
 }
