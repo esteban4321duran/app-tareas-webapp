@@ -1,6 +1,11 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "app-tareas-webapp",
-  "compatibility_date": "2025-08-03",
-  "main": "./src/index.tsx"
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "app-tareas-webapp",
+    "compatibility_date": "2025-08-03",
+    "compatibility_flags": [
+        //this flag tells Cloudflare Workers to provide some basic node.js API's. 
+        //node-postgres client requires these
+        "nodejs_compat"
+    ],
+    "main": "./src/index.tsx"
 }
