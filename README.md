@@ -11,7 +11,7 @@
 
 1. Ejecutar este comando para clonar el repositorio
 ```txt
-git clone https://github.com/esteban4321duran/app-tareas-webapp
+git clone https://github.com/esteban4321duran/app-tareas-webapp.git
 ```
 2. En una terminal ubicada en el directorio raíz del proyecto, ejecutar este comando para instalar las dependencias:
 ```txt
