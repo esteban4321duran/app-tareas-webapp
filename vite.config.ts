@@ -1,5 +1,6 @@
 import { cloudflare } from '@cloudflare/vite-plugin'
 import { defineConfig } from 'vite'
+import { loadEnv } from 'vite'
 import ssrPlugin from 'vite-ssr-components/plugin'
 //need to install @types/node
 import { fileURLToPath } from 'url'
@@ -19,6 +20,7 @@ export default defineConfig(({ mode }) => {
             }
         },
         test: {
+            //env: loadEnv(mode, process.cwd(), ''),
             environment: 'node',
             globals: true
         }

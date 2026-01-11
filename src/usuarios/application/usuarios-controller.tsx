@@ -25,13 +25,6 @@ const SignupForm: FC = (props) => {
 }
 
 
-
-const controller = new Hono<{ Bindings: EnvironmentVariables, Variables: Singletons }>();
-controller.get('/signup', (c) => {
-    return c.render(<SignupForm></SignupForm>);
-});
-
-
 const LONGITUD_MAXIMA = 255;
 //definimos un schema zod para validar los datos captados por el formulario. Los nombres los atributos coinciden con los de los atributos <input ... name="...">
 //https://zod.dev/basics
@@ -47,65 +40,72 @@ const signupZodSchema = z.object({
         .max(LONGITUD_MAXIMA, `Demasiados caracteres (máximo: ${LONGITUD_MAXIMA})`),
 });
 
-controller.post(
-    '/signup',
-    //https://github.com/honojs/middleware/tree/main/packages/zod-validator
-    zValidator('form', signupZodSchema, (result, c) => {
-        if (!result.success) {
-            return c.render(
-                <div>
+//Si se definen las rutas de la app hono con una serie de métodos encadenados, el helper para pruebas puede inferir las rutas y dar mejores sugerencias al escribir las pruebas
+//https://hono.dev/docs/helpers/testing#testclient
+const controller = new Hono<{ Bindings: EnvironmentVariables, Variables: Singletons }>()
+    .get('/signup', (c) => {
+        return c.render(<SignupForm></SignupForm>);
+    })
+    .post(
+        '/signup',
+        //https://github.com/honojs/middleware/tree/main/packages/zod-validator
+        zValidator('form', signupZodSchema, (result, c) => {
+            if (!result.success) {
+                return c.render(
                     <div>
-                        <h2>Error de validación</h2>
-                        <ul>
-                            {/*  como dar formato a los errores de validación de Zod https://zod.dev/error-formatting*/}
-                            {result.error.issues.map((issue) => {
-                                return <li>{issue.path}: {issue.message}</li>
-                            })}
-                        </ul>
+                        <div>
+                            <h2>Error de validación</h2>
+                            <ul>
+                                {/*  como dar formato a los errores de validación de Zod https://zod.dev/error-formatting*/}
+                                {result.error.issues.map((issue) => {
+                                    return <li>{issue.path}: {issue.message}</li>
+                                })}
+                            </ul>
+                        </div>
+                        <SignupForm></SignupForm>
                     </div>
-                    <SignupForm></SignupForm>
-                </div>
-            )
-        }
-    }),
-    async (c) => {
-        //aprovechamos la API de validación de Hono. Como utilizamos un middleware de validación en esta ruta, tenemos acceso a los datos validados mediante el método valid() del objeto c.req
-        //https://hono.dev/docs/api/request
-        const validated = c.req.valid('form');
+                )
+            }
+        }),
+        async (c) => {
+            //aprovechamos la API de validación de Hono. Como utilizamos un middleware de validación en esta ruta, tenemos acceso a los datos validados mediante el método valid() del objeto c.req
+            //https://hono.dev/docs/api/request
+            const validated = c.req.valid('form');
 
-        // await crearUsuario(c.get('drizzleClient'), validated);
-        try {
-            await crearUsuario(c.get('drizzleClient'), validated);
-        } catch (error: unknown) {
-            if (!isPostgresError) {
-                //no podemos manejar este error. Lanzamos el error de nuevo para que el handler global de errores de Hono se encargue de manejarlo.
-                throw error;
+            // await crearUsuario(c.get('drizzleClient'), validated);
+            try {
+                await crearUsuario(c.get('drizzleClient'), validated);
+            } catch (error: unknown) {
+                if (!isPostgresError) {
+                    //no podemos manejar este error. Lanzamos el error de nuevo para que el handler global de errores de Hono se encargue de manejarlo.
+                    throw error;
+                }
+                const DBError = error as PostgresError;
+                let mensaje;
+                switch (DBError.cause.code) {
+                    case UNIQUE_CONSTRAINT_VIOLATION:
+                        mensaje = 'Este email ya está siendo utilizado';
+                        break;
+                    default:
+                        mensaje = 'Error en la base de datos.';
+                        break;
+                }
+                return c.render(
+                    <div>
+                        <h2>Ocurrió un problema</h2>
+                        <p>{mensaje}</p>
+                        <SignupForm></SignupForm>
+                    </div>
+                )
             }
-            const DBError = error as PostgresError;
-            let mensaje;
-            switch (DBError.cause.code) {
-                case UNIQUE_CONSTRAINT_VIOLATION:
-                    mensaje = 'Este email ya está siendo utilizado';
-                    break;
-                default:
-                    mensaje = 'Error en la base de datos.';
-                    break;
-            }
+
+            c.status(201);
             return c.render(
                 <div>
-                    <h2>Ocurrió un problema</h2>
-                    <p>{mensaje}</p>
-                    <SignupForm></SignupForm>
+                    <p>Usuario registrado exitosamente!</p>
+                    <p><a href='/'>Volver al inicio</a></p>
                 </div>
-            )
-        }
-
-        return c.render(
-            <div>
-                <p>Usuario registrado exitosamente!</p>
-                <p><a href='/'>Volver al inicio</a></p>
-            </div>
-        );
-    });
+            );
+        });
 
 export default controller;

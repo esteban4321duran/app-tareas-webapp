@@ -7,7 +7,8 @@
         "preview": "$npm_execpath run build && vite preview",
         "deploy": "$npm_execpath run build && wrangler deploy",
         "cf-typegen": "wrangler types --env-interface CloudflareBindings",
-        "test": "vitest"
+        "test": "vitest",
+        "drizzle-kit-test": "DATABASE_URL=postgresql://esteban:55Cmalo_postgres@localhost:5433/postgres_test npx drizzle-kit"
     },
     "dependencies": {
         "@hono/zod-validator": "^0.7.6",
