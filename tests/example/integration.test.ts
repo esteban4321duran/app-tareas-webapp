@@ -41,32 +41,85 @@ describe("signup", () => {
 
     //Utilizamos el estilo Behavior driven design (BDD) para nombrar los escenarios de prueba
     //https://cucumber.io/docs/bdd/better-gherkin#consider-a-more-declarative-style
-    describe("when user signs up with valid nombre, apellido & email", () => {
-        test("then create new usuario", async () => {
-            //setup (preparar)
-            const inputData = {
-                apellido: "esteban",
-                nombre: "duran",
-                email: "esteban.duran@gmail.com"
-            }
+    test("when user signs up with valid nombre, apellido & email then create new usuario", async () => {
+        //setup (preparar)
+        const inputData = {
+            apellido: "esteban",
+            nombre: "duran",
+            email: "esteban.duran@gmail.com"
+        }
 
-            //act (actuar)
-            const response = await clientePruebas!.usuarios.signup.$post({
-                form: inputData
-            });
-
-            //assert (afirmar)
-            expect(response.status).toBe(201);
-            const result = await dbConnection!
-                .select()
-                .from(usersTable)
-                .where(
-                    eq(usersTable.email, inputData.email),
-                );
-            expect(result).toHaveLength(1);
-            expect(result[0]).toMatchObject(inputData);
+        //act (actuar)
+        const response = await clientePruebas!.usuarios.signup.$post({
+            form: inputData
         });
-    })
+
+        //assert (afirmar)
+        expect(response.status).toBe(201);
+        const result = await dbConnection!
+            .select()
+            .from(usersTable)
+            .where(
+                eq(usersTable.email, inputData.email),
+            );
+        expect(result).toHaveLength(1);
+        expect(result[0]).toMatchObject(inputData);
+    });
+    test("when user signs up with invalid nombre, then user is not created", async () => {
+        //setup (preparar)
+        const inputData = {
+            nombre: "esteban123",
+            apellido: "duran",
+            email: "esteban.duran@gmail.com"
+        }
+
+        //act (actuar)
+        const response = await clientePruebas!.usuarios.signup.$post({
+            form: inputData
+        });
+
+        //assert (afirmar)
+        expect(response.status).toBe(400);
+        const result = await dbConnection!
+            .select()
+            .from(usersTable)
+            .where(
+                eq(usersTable.email, inputData.email),
+            );
+        expect(result).toHaveLength(0);
+    });
+    test.todo("when user signs up with invalid apellido, then user is not created");
+    test.todo("when user signs up with invalid email, then user is not created");
+    test("given email already in use, when user signs up with valid data, then user is not created", async () => {
+        //setup (preparar)
+        const inputData1 = {
+            apellido: "duran",
+            nombre: "esteban",
+            email: "esteban.duran@gmail.com"
+        }
+        const inputData2 = {
+            apellido: "duran",
+            nombre: "esteban",
+            email: "esteban.duran@gmail.com"
+        }
+        await clientePruebas!.usuarios.signup.$post({
+            form: inputData1
+        });
+        //act (actuar)
+        const response = await clientePruebas!.usuarios.signup.$post({
+            form: inputData2
+        });
+
+        //assert (afirmar)
+        expect(response.status).toBe(400);
+        const result = await dbConnection!
+            .select()
+            .from(usersTable)
+            .where(
+                eq(usersTable.email, inputData1.email),
+            );
+        expect(result).toHaveLength(0);
+    });
 });
 
 // limpiar tablas después de cada prueba

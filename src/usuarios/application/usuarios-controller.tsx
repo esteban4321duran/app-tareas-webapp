@@ -51,6 +51,7 @@ const controller = new Hono<{ Bindings: EnvironmentVariables, Variables: Singlet
         //https://github.com/honojs/middleware/tree/main/packages/zod-validator
         zValidator('form', signupZodSchema, (result, c) => {
             if (!result.success) {
+                c.status(400);
                 return c.render(
                     <div>
                         <div>
