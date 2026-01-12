@@ -1,14 +1,13 @@
 import { cloudflare } from '@cloudflare/vite-plugin'
 import { defineConfig } from 'vite'
-import { loadEnv } from 'vite'
 import ssrPlugin from 'vite-ssr-components/plugin'
 //need to install @types/node
 import { fileURLToPath } from 'url'
 
 export default defineConfig(({ mode }) => {
     const plugins = []
-    if (mode !== 'test')
-        plugins.push(cloudflare())
+    //if (mode !== 'test')
+    plugins.push(cloudflare())
     plugins.push(ssrPlugin())
 
     return {
@@ -19,10 +18,10 @@ export default defineConfig(({ mode }) => {
                 '@': fileURLToPath(new URL('./src', import.meta.url))
             }
         },
-        test: {
-            //env: loadEnv(mode, process.cwd(), ''),
-            environment: 'node',
-            globals: true
-        }
+        // test: {
+        //     //env: loadEnv(mode, process.cwd(), ''),
+        //     environment: 'node',
+        //     globals: true
+        // }
     }
 })

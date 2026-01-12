@@ -4,6 +4,6 @@ export interface Singletons {
     //patrón singleton https://refactoring.guru/es/design-patterns/singleton
     drizzleClient: ReturnType<typeof drizzle>;
 }export interface EnvironmentVariables {
-    VITE_DATABASE_URL: string;
+    DATABASE_URL: string;
 }
 

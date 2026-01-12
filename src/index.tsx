@@ -19,7 +19,7 @@ const app = new Hono<{ Bindings: EnvironmentVariables, Variables: Singletons }>(
     .use(async (c, next) => {
         //TODO refactor initDBConnection middleware into persistence layer
         if (!dbConnection) {
-            dbConnection = drizzle(c.env.VITE_DATABASE_URL);
+            dbConnection = drizzle(c.env.DATABASE_URL);
         }
         //set dbConnection instance so it's available to other middleware
         c.set('drizzleClient', dbConnection);

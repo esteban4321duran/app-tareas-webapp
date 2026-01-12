@@ -11,7 +11,8 @@ let client: ReturnType<typeof testClient<typeof App>> | null = null;
 
 //https://vitest.dev/api/#beforeall
 beforeAll(async () => {
-    dbConnection = drizzle(process.env.VITE_DATABASE_URL!);
+    console.log(import.meta.env.DATABASE_URL);
+    dbConnection = drizzle(import.meta.env.DATABASE_URL!);
     client = testClient(App);
 })
 
