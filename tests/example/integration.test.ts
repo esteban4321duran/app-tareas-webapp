@@ -1,45 +1,61 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { testClient } from 'hono/testing';
 import { describe, test, expect, afterEach, beforeAll } from 'vitest';
-import controller from '@/usuarios/application/usuarios-controller';
 import App from '@/index';
 import { usersTable } from '@/usuarios/persistence/schema';
 import { eq, sql } from 'drizzle-orm';
+import { EnvironmentVariables } from '@/cross-cut/distributed-services/hono-types';
 
 let dbConnection: ReturnType<typeof drizzle> | null = null;
-let client: ReturnType<typeof testClient<typeof App>> | null = null;
+let clientePruebas: ReturnType<typeof testClient<typeof App>> | null = null;
 
 //https://vitest.dev/api/#beforeall
 beforeAll(async () => {
-    console.log(import.meta.env.DATABASE_URL);
+    /*Setup para pruebas de integración
+    Hono deja a la plataforma donde se está ejecutando la responsabilidad de inyectar las variables de entorno en el objeto request context.
+    Cuando la plataforma es el servidor de desarrollo de vite (npm run dev), este servidor inyecta automáticamente las variables de entorno.
+    Sin embargo, cuando vitest ejecuta las pruebas, la plataforma es la herramienta para pruebas de integración testClient(). Debemos pasar como argumento las variables de entorno para ser inyectadas.
+
+    explicación: https://gemini.google.com/share/33130ec0cc59
+
+    signatura de la función testClient: https://github.com/honojs/hono/blob/ef2a4b8d77711c9308a6ddca9e35d4ff321f97fe/src/helper/testing/index.ts#L18
+    */
+
+    // Inicializamos una conexión con la base de datos
     dbConnection = drizzle(import.meta.env.DATABASE_URL!);
-    client = testClient(App);
+
+    // Preparamos las variables de entorno que queremos inyectar en el objeto request context de nuestra app Hono
+    const testEnvVars: EnvironmentVariables = {
+        DATABASE_URL: import.meta.env.DATABASE_URL
+    };
+
+    // Pasamos la app Hono y las variables de entorno.
+    clientePruebas = testClient(App, testEnvVars);
 })
 
 
 //Las pruebas de integración tienen "efectos secundarios", es decir, modifican el estado del sistema en general (por ejemplo, agregan filas a la base de datos).
 //queremos mantener un contexto de pruebas consistente para poder ejecutar las pruebas tantas veces como sea necesario y que siempre funcionen de la misma manera.
-//Para eso hacemos uso de transacciones en la base de datos envolvemos cada prueba en una transacción. Al final de cada prueba revertimos la transacción para descartar cualquier efecto secundario realizado durante la prueba. De este modo logramos mantener un contexto consistente siempre que ejecutemos las pruebas
-//https://orm.drizzle.team/docs/transactions
+//para eso "truncamos" (limpiamos) las tablas de la BD al final de cada prueba para descartar cualquier efecto secundario realizado durante la prueba. De este modo logramos mantener un contexto consistente siempre que ejecutemos las pruebas
 describe("signup", () => {
 
     //Utilizamos el estilo Behavior driven design (BDD) para nombrar los escenarios de prueba
     //https://cucumber.io/docs/bdd/better-gherkin#consider-a-more-declarative-style
     describe("when user signs up with valid nombre, apellido & email", () => {
         test("then create new usuario", async () => {
-            //setup
+            //setup (preparar)
             const inputData = {
                 apellido: "esteban",
                 nombre: "duran",
                 email: "esteban.duran@gmail.com"
             }
 
-            //act
-            const response = await client!.usuarios.signup.$post({
+            //act (actuar)
+            const response = await clientePruebas!.usuarios.signup.$post({
                 form: inputData
             });
 
-            //assert
+            //assert (afirmar)
             expect(response.status).toBe(201);
             const result = await dbConnection!
                 .select()
@@ -47,16 +63,16 @@ describe("signup", () => {
                 .where(
                     eq(usersTable.email, inputData.email),
                 );
-
             expect(result).toHaveLength(1);
             expect(result[0]).toMatchObject(inputData);
         });
     })
-})
+});
 
-// Clean up data after EACH test
+// limpiar tablas después de cada prueba
 afterEach(async () => {
-    // "RESTART IDENTITY" resets the ID counters (e.g. id=1)
+    // "RESTART IDENTITY" reinicia los contadores de IDs al número 1
     // "CASCADE" ensures related data in other tables is also deleted
+    // "CASCADE" nos asegura que los datos relacionados en otras tablas también son borrados
     await dbConnection!.execute(sql`TRUNCATE TABLE ${usersTable} RESTART IDENTITY CASCADE`);
 });
