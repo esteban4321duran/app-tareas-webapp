@@ -30,6 +30,7 @@ beforeAll(async () => {
     };
 
     // Pasamos la app Hono y las variables de entorno.
+    //https://hono.dev/docs/helpers/testing#testclient
     clientePruebas = testClient(App, testEnvVars);
 })
 
@@ -90,7 +91,7 @@ describe("signup", () => {
     });
     test.todo("when user signs up with invalid apellido, then user is not created");
     test.todo("when user signs up with invalid email, then user is not created");
-    test("given email already in use, when user signs up with valid data, then user is not created", async () => {
+    test("Dado un email que ya está en uso, cuando se crea un usuario con datos válidos, Entonces el sistema no crea un usuario", async () => {
         //setup (preparar)
         const inputData1 = {
             apellido: "duran",
@@ -118,7 +119,7 @@ describe("signup", () => {
             .where(
                 eq(usersTable.email, inputData1.email),
             );
-        expect(result).toHaveLength(0);
+        expect(result).toHaveLength(1);
     });
 });
 

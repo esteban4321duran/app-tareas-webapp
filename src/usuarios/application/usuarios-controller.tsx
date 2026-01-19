@@ -73,7 +73,6 @@ const controller = new Hono<{ Bindings: EnvironmentVariables, Variables: Singlet
             //https://hono.dev/docs/api/request
             const validated = c.req.valid('form');
 
-            // await crearUsuario(c.get('drizzleClient'), validated);
             try {
                 await crearUsuario(c.get('drizzleClient'), validated);
             } catch (error: unknown) {
@@ -91,6 +90,9 @@ const controller = new Hono<{ Bindings: EnvironmentVariables, Variables: Singlet
                         mensaje = 'Error en la base de datos.';
                         break;
                 }
+
+                //falta establecer el status HHTP 400
+                c.status(400);
                 return c.render(
                     <div>
                         <h2>Ocurrió un problema</h2>
@@ -100,6 +102,7 @@ const controller = new Hono<{ Bindings: EnvironmentVariables, Variables: Singlet
                 )
             }
 
+            //acá tenés un ejemplo
             c.status(201);
             return c.render(
                 <div>
