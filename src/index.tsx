@@ -2,6 +2,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Hono } from 'hono';
 import { renderer } from './renderer';
 import usuariosController from '@/usuarios/application/usuarios-controller';
+import tareasController from '@/tareas/tareas-controller';
 import { EnvironmentVariables, Singletons } from './cross-cut/distributed-services/hono-types';
 
 // Global variable to cache the DB connection across requests on the same worker
@@ -26,19 +27,20 @@ const app = new Hono<{ Bindings: EnvironmentVariables, Variables: Singletons }>(
 
         await next();
     })
-    .use(renderer)
-    .get('/', (c) => {
-        const nombre = "Florcita";
-        return c.render(
-            <main>
-                <h1>Hello {nombre}!</h1>
-                <a href='/usuarios/signup'>Demostración crear usuario</a>
-            </main>
-        );
-    })
+    //.use(renderer)
+    //.get('/', (c) => {
+    //const nombre = "Florcita";
+    //return c.render(
+    //<main>
+    //<h1>Hello {nombre}!</h1>
+    //<a href='/usuarios/signup'>Demostración crear usuario</a>
+    //</main>
+    //);
+    //})
     //Para mantener una estructura cohesiva y ordenada, utilizaremos el patrón sugerido por la documentación de Hono. 
     // Se creará una nueva sub-aplicación para cada característica de la aplicación
     //https://hono.dev/docs/guides/best-practices#building-a-larger-application
-    .route('/usuarios', usuariosController);
+    .route('/usuarios', usuariosController)
+    .route('/tareas', tareasController)
 
 export default app;
